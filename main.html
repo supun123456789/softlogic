@@ -1,53 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Simple Webpage</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background-color: #f4f4f4;
-      color: #333;
-    }
-    header, footer {
-      background-color: #007BFF;
-      color: white;
-      padding: 10px 20px;
-      text-align: center;
-    }
-    main {
-      margin: 20px auto;
-      max-width: 800px;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Tracker Web App</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+label { font-weight: bold; }
+input, select, textarea { width: 100%; padding: 8px; margin: 5px 0 15px 0; }
+button { padding: 10px 20px; cursor: pointer; }
+#status { font-weight: bold; margin-top: 20px; }
+</style>
 </head>
 <body>
+<h2>Job Entry Form</h2>
+<form id="jobForm">
+  <label>Job Number:</label>
+  <input type="text" name="job_number" required>
 
-  <header>
-    <h1>Welcome to My Webpage</h1>
-  </header>
+  <label>Customer Name:</label>
+  <input type="text" name="customer_name" required>
 
-  <main>
-    <h2>About This Page</h2>
-    <p>This is a simple webpage created using HTML and a little CSS. You can use this as a starting point for building more complex websites.</p>
+  <label>Job State:</label>
+  <select name="job_state" required>
+    <option value="">Select State</option>
+    <option value="Pending">Pending</option>
+    <option value="In Progress">In Progress</option>
+    <option value="Completed">Completed</option>
+  </select>
 
-    <h3>Features</h3>
-    <ul>
-      <li>Clean layout</li>
-      <li>Responsive design basics</li>
-      <li>Easy to modify</li>
-    </ul>
-  </main>
+  <label>Job In Time:</label>
+  <input type="datetime-local" name="job_in_time" required>
 
-  <footer>
-    <p>&copy; 2025 My Simple Webpage</p>
-  </footer>
+  <label>Job Out Time:</label>
+  <input type="datetime-local" name="job_out_time">
 
+  <label>Remark:</label>
+  <textarea name="remark"></textarea>
+
+  <button type="button" onclick="submitForm()">Submit</button>
+</form>
+
+<p id="status"></p>
+
+<script>
+const REPO = "https://supun123456789.github.io/softlogic/"; // Replace with your repo
+const FILE_PATH = "jobs.json";                        // File in your repo
+const BRANCH = "main";                                // Branch name
+const TOKEN = "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";           // Your GitHub token
+
+async function submitForm() {
+    const form = document.getElementById('jobForm');
+    const newJob = {
+        job_number: form.job_number.value,
+        customer_name: form.customer_name.value,
+        job_state: form.job_state.value,
+        job_in_time: form.job_in_time.value,
+        job_out_time: form.job_out_time.value,
+        remark: form.remark.value
+    };
+
+    try {
+        // 1️⃣ Get current file content and SHA
+        let res = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`, {
+            headers: { Authorization: `token ${TOKEN}` }
+        });
+        let data = await res.json();
+        let currentContent = JSON.parse(atob(data.content));
+        let sha = data.sha;
+
+        // 2️⃣ Append new job
+        currentContent.push(newJob);
+
+        // 3️⃣ Update file on GitHub
+        await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`, {
+            method: 'PUT',
+            headers: { 
+                Authorization: `token ${TOKEN}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `Add job ${newJob.job_number}`,
+                content: btoa(JSON.stringify(currentContent, null, 2)),
+                branch: BRANCH,
+                sha: sha
+            })
+        });
+
+        document.getElementById('status').innerText = "Job saved successfully!";
+        form.reset();
+    } catch (err) {
+        console.error(err);
+        document.getElementById('status').innerText = "Error saving job!";
+    }
+}
+</script>
 </body>
 </html>
