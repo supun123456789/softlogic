@@ -7,7 +7,7 @@ import base64
 app = Flask(__name__)
 
 GITHUB_TOKEN = "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"
-REPO = "YOUR_USERNAME/job-tracker"
+REPO = "supun123456789/softlogic"
 BRANCH = "main"
 FILE_PATH = "jobs.xlsx"
 
@@ -70,4 +70,5 @@ def submit_job():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
