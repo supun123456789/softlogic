@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # CONFIGURE
 # ========== CONFIGURE HERE ==========
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "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"
 REPO = "supun123456789/softlogic"
 BRANCH = "main"
 FILE_PATH = "jobs.xlsx"
@@ -71,4 +71,5 @@ def submit_job():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
