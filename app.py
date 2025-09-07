@@ -6,10 +6,12 @@ import base64
 
 app = Flask(__name__)
 
+# ========== CONFIGURE HERE ==========
 GITHUB_TOKEN = "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"
 REPO = "supun123456789/softlogic"
 BRANCH = "main"
 FILE_PATH = "jobs.xlsx"
+# ===================================
 
 GITHUB_API_URL = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
 
@@ -56,6 +58,7 @@ def push_to_github(file_stream, sha):
     }
     r = requests.put(GITHUB_API_URL, headers=headers, json=data)
     r.raise_for_status()
+    return r.json()
 
 @app.route('/submit_job', methods=['POST'])
 def submit_job():
@@ -70,5 +73,4 @@ def submit_job():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
 
