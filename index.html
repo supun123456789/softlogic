@@ -185,29 +185,27 @@ function renderTable() {
 }
 
 async function submitForm() {
-  const form = document.getElementById('jobForm');
-  const newJob = {
-    job_number: form.job_number.value,
-    customer_name: form.customer_name.value,
-    job_state: form.job_state.value,
-    job_in_time: form.job_in_time.value,
-    job_out_time: form.job_out_time.value,
-    remark: form.remark.value
-  };
-
-  try {
-    // Replace this with your backend fetch to GitHub Excel
-    // Example: const res = await fetch('YOUR_BACKEND_URL', {...})
-    // Here, we just simulate success
-    jobs.push(newJob); // Add to local array temporarily
-
-    document.getElementById('status').innerText = "Job saved successfully!";
-    form.reset();
-    renderTable();
-  } catch (err) {
-    console.error(err);
-    document.getElementById('status').innerText = "Error saving job!";
-  }
+    const form = document.getElementById('jobForm');
+    const jobData = {
+        job_number: form.job_number.value,
+        customer_name: form.customer_name.value,
+        job_state: form.job_state.value,
+        job_in_time: form.job_in_time.value,
+        job_out_time: form.job_out_time.value,
+        remark: form.remark.value
+    };
+    try {
+        const res = await fetch('http://localhost:5000/submit_job', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(jobData)
+        });
+        const result = await res.json();
+        document.getElementById('status').innerText = result.status === "success" ? "Job saved!" : "Error!";
+    } catch (err) {
+        console.error(err);
+        document.getElementById('status').innerText = "Error saving job!";
+    }
 }
 
 // Render table initially
@@ -216,3 +214,4 @@ renderTable();
 
 </body>
 </html>
+
