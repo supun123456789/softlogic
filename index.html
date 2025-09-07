@@ -2,56 +2,30 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Job Tracker Web App</title>
-<style>
-body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-label { font-weight: bold; }
-input, select, textarea { width: 100%; padding: 8px; margin: 5px 0 15px 0; }
-button { padding: 10px 20px; cursor: pointer; }
-#status { font-weight: bold; margin-top: 20px; }
-</style>
+<title>Job Tracker</title>
 </head>
 <body>
 <h2>Job Entry Form</h2>
 <form id="jobForm">
-  <label>Job Number:</label>
-  <input type="text" name="job_number" required>
-
-  <label>Customer Name:</label>
-  <input type="text" name="customer_name" required>
-
-  <label>Job State:</label>
+  <input type="text" name="job_number" placeholder="Job Number" required><br><br>
+  <input type="text" name="customer_name" placeholder="Customer Name" required><br><br>
   <select name="job_state" required>
     <option value="">Select State</option>
     <option value="Pending">Pending</option>
     <option value="In Progress">In Progress</option>
     <option value="Completed">Completed</option>
-  </select>
-
-  <label>Job In Time:</label>
-  <input type="datetime-local" name="job_in_time" required>
-
-  <label>Job Out Time:</label>
-  <input type="datetime-local" name="job_out_time">
-
-  <label>Remark:</label>
-  <textarea name="remark"></textarea>
-
+  </select><br><br>
+  <input type="datetime-local" name="job_in_time" required><br><br>
+  <input type="datetime-local" name="job_out_time"><br><br>
+  <textarea name="remark" placeholder="Remark"></textarea><br><br>
   <button type="button" onclick="submitForm()">Submit</button>
 </form>
-
 <p id="status"></p>
 
 <script>
-const REPO = "supun123456789/softlogic"; // Replace with your repo
-const FILE_PATH = "jobs.json";                        // File in your repo
-const BRANCH = "main";                                // Branch name
-const TOKEN = "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";           // Your GitHub token
-
-async function submitForm() {
+async function submitForm(){
     const form = document.getElementById('jobForm');
-    const newJob = {
+    const data = {
         job_number: form.job_number.value,
         customer_name: form.customer_name.value,
         job_state: form.job_state.value,
@@ -60,41 +34,16 @@ async function submitForm() {
         remark: form.remark.value
     };
 
-    try {
-        // 1️⃣ Get current file content and SHA
-        let res = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`, {
-            headers: { Authorization: `token ${TOKEN}` }
-        });
-        let data = await res.json();
-        let currentContent = JSON.parse(atob(data.content));
-        let sha = data.sha;
+    const res = await fetch('/submit_job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
 
-        // 2️⃣ Append new job
-        currentContent.push(newJob);
-
-        // 3️⃣ Update file on GitHub
-        await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`, {
-            method: 'PUT',
-            headers: { 
-                Authorization: `token ${TOKEN}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: `Add job ${newJob.job_number}`,
-                content: btoa(JSON.stringify(currentContent, null, 2)),
-                branch: BRANCH,
-                sha: sha
-            })
-        });
-
-        document.getElementById('status').innerText = "Job saved successfully!";
-        form.reset();
-    } catch (err) {
-        console.error(err);
-        document.getElementById('status').innerText = "Error saving job!";
-    }
+    const result = await res.json();
+    document.getElementById('status').innerText = result.status === "success" ? "Job saved!" : "Error!";
+    form.reset();
 }
 </script>
 </body>
 </html>
-
