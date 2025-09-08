@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import requests
 from openpyxl import load_workbook
 from io import BytesIO
@@ -9,10 +9,10 @@ from cryptography.fernet import Fernet
 app = Flask(__name__)
 
 # ===== CONFIG =====
-# Store this encrypted token directly in your code (safe to commit)
+# Store your encrypted GitHub token here (safe to commit)
 ENCRYPTED_TOKEN = b"gAAAAABnIU7Oj2-0mFVw9QUSCeV--QFpnYBeaH7pN9l94KRVXh1rXEl6l9n9GClp4l7RoDzKnDxX_0r1x4Q4oqmUraH9UOYzm2VG_5zzjfxIf2sVzF8mY4wGpbwR9JQMyjEan_jOiMxX"
 
-# The AES decryption key MUST be in an environment variable
+# Secret AES key must be in environment variable TOKEN_KEY
 SECRET_KEY = os.getenv("7DyACMXHCee3H4UgL_UxA0b80tUibcws6sAVs3VGjX8=")
 if SECRET_KEY:
     fernet = Fernet(SECRET_KEY.encode())
@@ -69,6 +69,10 @@ def push_to_github(file_stream, sha):
     r = requests.put(GITHUB_API_URL, headers=headers, json=data)
     r.raise_for_status()
     return r.json()
+
+@app.route("/")
+def home():
+    return send_from_directory(".", "index.html")
 
 @app.route('/submit_job', methods=['POST'])
 def submit_job():
