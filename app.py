@@ -8,24 +8,53 @@ from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 
-# ===== CONFIG =====
-# Store your encrypted GitHub token here (safe to commit)
+# ================= CONFIG =================
+# Encrypted GitHub token (safe to commit)
 ENCRYPTED_TOKEN = b"gAAAAABnIU7Oj2-0mFVw9QUSCeV--QFpnYBeaH7pN9l94KRVXh1rXEl6l9n9GClp4l7RoDzKnDxX_0r1x4Q4oqmUraH9UOYzm2VG_5zzjfxIf2sVzF8mY4wGpbwR9JQMyjEan_jOiMxX"
 
-# Secret AES key must be in environment variable TOKEN_KEY
+# Secret key stored in environment variable (never commit)
 SECRET_KEY = os.getenv("7DyACMXHCee3H4UgL_UxA0b80tUibcws6sAVs3VGjX8=")
+
 if SECRET_KEY:
     fernet = Fernet(SECRET_KEY.encode())
     GITHUB_TOKEN = fernet.decrypt(ENCRYPTED_TOKEN).decode()
 else:
     GITHUB_TOKEN = None
 
-REPO = "supun123456789/job-tracker"   # Change repo name
+# GitHub repo info
+REPO = "supun123456789/job-tracker"   # Replace with your repo
 BRANCH = "main"
 FILE_PATH = "jobs.xlsx"
 GITHUB_API_URL = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
-# ==================
+# ==========================================
 
+# ---------------- Serve frontend ----------------
+@app.route("/")
+def home():
+    return send_from_directory(".", "index.html")
+
+# ---------------- Submit job ----------------
+@app.route('/submit_job', methods=['POST'])
+def submit_job():
+    if not GITHUB_TOKEN:
+        return jsonify({"status": "error", "message": "GitHub token missing or not decrypted!"}), 500
+
+    try:
+        job_data = request.json
+        file_stream, sha = get_excel_file()
+        updated_file = update_excel(job_data, file_stream)
+        push_to_github(updated_file, sha)
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ---------------- Error handler ----------------
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Always return JSON
+    return jsonify({"status": "error", "message": str(e)}), 500
+
+# ---------------- Excel functions ----------------
 def get_excel_file():
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     r = requests.get(GITHUB_API_URL + f"?ref={BRANCH}", headers=headers)
@@ -39,12 +68,14 @@ def update_excel(job_data, file_stream):
     wb = load_workbook(file_stream)
     ws = wb.active
 
+    # Check if job number exists
     job_numbers = [ws.cell(row=i, column=1).value for i in range(2, ws.max_row+1)]
     if job_data['job_number'] in job_numbers:
         row_idx = job_numbers.index(job_data['job_number']) + 2
     else:
         row_idx = ws.max_row + 1
 
+    # Update / add job
     ws.cell(row=row_idx, column=1, value=job_data['job_number'])
     ws.cell(row=row_idx, column=2, value=job_data['customer_name'])
     ws.cell(row=row_idx, column=3, value=job_data['job_state'])
@@ -70,23 +101,6 @@ def push_to_github(file_stream, sha):
     r.raise_for_status()
     return r.json()
 
-@app.route("/")
-def home():
-    return send_from_directory(".", "index.html")
-
-@app.route('/submit_job', methods=['POST'])
-def submit_job():
-    if not GITHUB_TOKEN:
-        return jsonify({"status": "error", "message": "GitHub token missing or not decrypted!"}), 500
-
-    try:
-        job_data = request.json
-        file_stream, sha = get_excel_file()
-        updated_file = update_excel(job_data, file_stream)
-        push_to_github(updated_file, sha)
-        return jsonify({"status": "success"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+# ---------------- Run server ----------------
 if __name__ == "__main__":
     app.run(debug=True)
