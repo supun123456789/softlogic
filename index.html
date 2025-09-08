@@ -1,217 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Job Tracker Web App</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  body {
-    font-family: 'Roboto', sans-serif;
-    background: #f5f7fa;
-    margin: 0;
-    padding: 0;
-  }
-
-  header {
-    background: #2c3e50;
-    color: white;
-    padding: 20px 0;
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
-
-  main {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0px 8px 20px rgba(0,0,0,0.1);
-  }
-
-  h2 {
-    color: #34495e;
-    text-align: center;
-    margin-bottom: 30px;
-  }
-
-  form label {
-    font-weight: 500;
-    color: #34495e;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0 20px 0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    transition: all 0.3s;
-    font-size: 16px;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: #2980b9;
-    box-shadow: 0 0 5px rgba(41,128,185,0.3);
-    outline: none;
-  }
-
-  button {
-    background: #2980b9;
-    color: white;
-    border: none;
-    padding: 14px 30px;
-    font-size: 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: block;
-    margin: 0 auto;
-  }
-
-  button:hover {
-    background: #3498db;
-    transform: scale(1.05);
-  }
-
-  #status {
-    text-align: center;
-    margin-top: 20px;
-    font-weight: 600;
-    font-size: 18px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 40px;
-  }
-
-  table th, table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: center;
-  }
-
-  table th {
-    background: #2980b9;
-    color: white;
-    font-weight: 600;
-  }
-
-  table tr:nth-child(even) {
-    background: #f2f2f2;
-  }
-
-  table tr:hover {
-    background: #d6eaf8;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Job Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 30px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #34495e;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .msg {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      display: none;
+    }
+    .success {
+      background: #2ecc71;
+      color: white;
+    }
+    .error {
+      background: #e74c3c;
+      color: white;
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Job Tracker</h2>
+    <form id="jobForm">
+      <label>Job Number</label>
+      <input type="text" id="job_number" required>
 
-<header>Job Tracker Web App</header>
+      <label>Customer Name</label>
+      <input type="text" id="customer_name" required>
 
-<main>
-  <h2>Add New Job</h2>
-  <form id="jobForm">
-    <label>Job Number</label>
-    <input type="text" name="job_number" required>
+      <label>Job State</label>
+      <select id="job_state">
+        <option>Pending</option>
+        <option>In Progress</option>
+        <option>Completed</option>
+      </select>
 
-    <label>Customer Name</label>
-    <input type="text" name="customer_name" required>
+      <label>Job In Time</label>
+      <input type="datetime-local" id="job_in_time">
 
-    <label>Job State</label>
-    <select name="job_state" required>
-      <option value="">Select State</option>
-      <option value="Pending">Pending</option>
-      <option value="In Progress">In Progress</option>
-      <option value="Completed">Completed</option>
-    </select>
+      <label>Job Out Time</label>
+      <input type="datetime-local" id="job_out_time">
 
-    <label>Job In Time</label>
-    <input type="datetime-local" name="job_in_time" required>
+      <label>Remark</label>
+      <textarea id="remark"></textarea>
 
-    <label>Job Out Time</label>
-    <input type="datetime-local" name="job_out_time">
+      <button type="submit">Submit</button>
+    </form>
 
-    <label>Remark</label>
-    <textarea name="remark"></textarea>
+    <div id="message" class="msg"></div>
+  </div>
 
-    <button type="button" onclick="submitForm()">Submit</button>
-  </form>
+  <script>
+    document.getElementById("jobForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
 
-  <p id="status"></p>
+      const jobData = {
+        job_number: document.getElementById("job_number").value,
+        customer_name: document.getElementById("customer_name").value,
+        job_state: document.getElementById("job_state").value,
+        job_in_time: document.getElementById("job_in_time").value,
+        job_out_time: document.getElementById("job_out_time").value,
+        remark: document.getElementById("remark").value
+      };
 
-  <h2>All Jobs</h2>
-  <table id="jobsTable">
-    <thead>
-      <tr>
-        <th>Job Number</th>
-        <th>Customer Name</th>
-        <th>Job State</th>
-        <th>Job In Time</th>
-        <th>Job Out Time</th>
-        <th>Remark</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Jobs will be added here dynamically -->
-    </tbody>
-  </table>
-</main>
-
-<script>
-let jobs = []; // This will store jobs temporarily, replace with backend data fetching
-
-function renderTable() {
-  const tbody = document.querySelector("#jobsTable tbody");
-  tbody.innerHTML = "";
-  jobs.forEach(job => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${job.job_number}</td>
-      <td>${job.customer_name}</td>
-      <td>${job.job_state}</td>
-      <td>${job.job_in_time}</td>
-      <td>${job.job_out_time}</td>
-      <td>${job.remark}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-async function submitForm() {
-    const form = document.getElementById('jobForm');
-    const jobData = {
-        job_number: form.job_number.value,
-        customer_name: form.customer_name.value,
-        job_state: form.job_state.value,
-        job_in_time: form.job_in_time.value,
-        job_out_time: form.job_out_time.value,
-        remark: form.remark.value
-    };
-    try {
-        const res = await fetch('http://localhost:5000/submit_job', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(jobData)
+      try {
+        const res = await fetch("/submit_job", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jobData)
         });
-        const result = await res.json();
-        document.getElementById('status').innerText = result.status === "success" ? "Job saved!" : "Error!";
-    } catch (err) {
-        console.error(err);
-        document.getElementById('status').innerText = "Error saving job!";
-    }
-}
 
-// Render table initially
-renderTable();
-</script>
+        const data = await res.json();
+        const msg = document.getElementById("message");
 
+        if (data.status === "success") {
+          msg.className = "msg success";
+          msg.innerText = "✅ Job saved successfully!";
+          msg.style.display = "block";
+        } else {
+          msg.className = "msg error";
+          msg.innerText = "❌ Error: " + (data.message || "Unknown error");
+          msg.style.display = "block";
+        }
+      } catch (err) {
+        const msg = document.getElementById("message");
+        msg.className = "msg error";
+        msg.innerText = "❌ Request failed: " + err.message;
+        msg.style.display = "block";
+      }
+    });
+  </script>
 </body>
 </html>
-
