@@ -1,278 +1,527 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Softlogic — Job Manager</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <meta charset="UTF-8" />
+  <title>Job Tracker • Softlogic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- PWA -->
+  <link id="manifestLink" rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0ea5e9" />
+
   <style>
-    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#9aa4b2;--glass:rgba(255,255,255,0.03)}
-    html,body{height:100%;font-family:Inter,Segoe UI,Roboto,Arial;margin:0;background:linear-gradient(180deg,#071024 0%, #071a2a 100%);color:#e6eef6}
-    .wrap{max-width:1100px;margin:28px auto;padding:20px}
-    header{display:flex;align-items:center;gap:18px}
-    header h1{margin:0;font-size:20px}
-    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6);}
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
-    form .row{display:flex;gap:8px;margin-bottom:8px}
-    input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit}
-    button{background:var(--accent);border:none;padding:10px 12px;border-radius:10px;color:#042023;cursor:pointer;font-weight:600}
-    .menu{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-    .menu button{background:transparent;color:var(--muted);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
-    .menu button.active{color:var(--accent);border-color:rgba(6,182,212,0.12);box-shadow:0 4px 12px rgba(6,182,212,0.06)}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:8px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px}
-    .muted{color:var(--muted);font-size:13px}
-    .actions button{margin-right:6px}
-    .small{font-size:12px;padding:6px 8px}
-    .config{display:flex;flex-direction:column;gap:8px}
-    .notice{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;color:var(--muted);font-size:13px}
-    footer{margin-top:16px;text-align:center;color:var(--muted);font-size:13px}
-    @media(max-width:980px){.grid{grid-template-columns:1fr} .wrap{padding:12px}}
+    :root{
+      --bg: #0b1220;          /* dark gradient base */
+      --bg2:#0e1629;
+      --card:#0f172a;
+      --muted:#94a3b8;
+      --line:#1f2a44;
+      --accent:#0ea5e9;
+      --accent-2:#22d3ee;
+      --ok:#22c55e;
+      --bad:#ef4444;
+      --warn:#f59e0b;
+      --txt:#e2e8f0;
+      --txt-weak:#cbd5e1;
+      --chip:#0b2b3a;
+      --shadow: 0 6px 30px rgba(14,165,233,.18);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--txt); background:
+        radial-gradient(1200px 600px at -10% -10%, #1b3a54 0, #0b1220 60%),
+        radial-gradient(1200px 600px at 110% 10%, #1b3654 0, #0b1220 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      min-height:100%;
+    }
+    a{color:inherit; text-decoration:none}
+    .app{
+      display:grid; grid-template-columns: 260px 1fr; min-height:100vh;
+    }
+    /* Sidebar */
+    .side{
+      position:sticky; top:0; height:100vh; padding:18px; border-right:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(14,22,41,.9), rgba(11,18,32,.85));
+      backdrop-filter: blur(6px);
+    }
+    .brand{display:flex; align-items:center; gap:10px; padding:10px 8px; margin-bottom:10px}
+    .brand .logo{width:32px; height:32px; display:grid; place-items:center; border-radius:10px; background:linear-gradient(135deg, var(--accent), var(--accent-2))}
+    .brand b{letter-spacing:.2px}
+    .menu{margin-top:12px; display:flex; flex-direction:column; gap:6px}
+    .menu button{
+      all:unset; display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:pointer;
+      color:var(--txt-weak); border:1px solid transparent;
+    }
+    .menu button:hover{background:#0c1a2a; color:var(--txt)}
+    .menu button.active{background:#061a26; border-color:#10344a; color:white; box-shadow:var(--shadow)}
+    .chip{font-size:12px; padding:2px 8px; border-radius:999px; background:var(--chip); color:#a5f3fc; border:1px solid #124055}
+    .grow{flex:1}
+    .sidefoot{margin-top:auto; font-size:12px; color:var(--muted)}
+    .toggle{
+      margin-top:12px; display:flex; align-items:center; gap:10px; font-size:14px; color:var(--txt-weak)
+    }
+    /* Topbar */
+    .main{padding:20px 22px}
+    .top{
+      display:flex; align-items:center; gap:10px; margin-bottom:16px;
+    }
+    .top h1{font-size:22px; margin:0; font-weight:700}
+    .spacer{flex:1}
+    .btn{
+      all:unset; cursor:pointer; padding:10px 14px; border-radius:10px; border:1px solid #14415a; background:#0a2a3a; color:#c8eefc;
+    }
+    .btn:hover{filter:brightness(1.1)}
+    .btn.bad{border-color:#5a1423; background:#3a0a18; color:#ffc9d0}
+    .btn.ghost{background:transparent; color:var(--txt-weak); border-color:var(--line)}
+    /* Cards / panels */
+    .grid{display:grid; gap:14px}
+    @media(min-width:900px){ .grid.cols-2{grid-template-columns: 1fr 1fr} }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:var(--shadow)
+    }
+    .card h2{font-size:16px; margin:0 0 12px}
+    label{font-size:13px; color:var(--txt-weak)}
+    input,select,textarea{
+      width:100%; padding:10px 12px; margin-top:6px; border-radius:10px; border:1px solid #2a3b57; background:#0a1322; color:var(--txt);
+      outline:none;
+    }
+    textarea{min-height:90px; resize:vertical}
+    .row{display:grid; gap:12px}
+    @media(min-width:720px){ .row.cols-2{grid-template-columns: 1fr 1fr} .row.cols-3{grid-template-columns: repeat(3, 1fr)} }
+    /* Table */
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+    .toolbar input[type="search"]{max-width:260px}
+    table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:12px; border:1px solid var(--line)}
+    thead th{
+      text-align:left; font-size:12px; letter-spacing:.3px; text-transform:uppercase; color:#9fb4cf; background:#0a1322; padding:10px; border-bottom:1px solid var(--line);
+      cursor:pointer;
+    }
+    tbody td{padding:10px; border-top:1px solid #14223a}
+    tbody tr:hover{background:#0a1a2a}
+    .state{padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid; display:inline-block}
+    .s-pending{color:#f59e0b; border-color:#493a16; background:#231b09}
+    .s-inprogress{color:#38bdf8; border-color:#123042; background:#0b2230}
+    .s-completed{color:#22c55e; border-color:#123a25; background:#0a2115}
+    .msg{margin-top:8px; font-size:14px}
+    .msg.ok{color:#86efac} .msg.err{color:#fca5a5}
+    .actions{display:flex; gap:8px}
+    .pill{
+      all:unset; cursor:pointer; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--line); color:#bcd3ea;
+      background:#0b1629;
+    }
+    .pill:hover{filter:brightness(1.08)}
+    .hidden{display:none !important}
+    .footer{margin-top:14px; font-size:12px; color:var(--muted)}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <img src="https://supun123456789.github.io/softlogic/favicon.png" alt="logo" width="44" height="44" style="border-radius:10px;object-fit:cover">
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="side">
+    <div class="brand">
+      <div class="logo">★</div>
       <div>
-        <h1>Softlogic — Job Manager</h1>
-        <div class="muted">Submit, view, update jobs — auto sync to GitHub or keep local</div>
+        <b>Job Tracker</b><br/>
+        <small class="muted" style="color:#93c5fd">Softlogic</small>
       </div>
-    </header>
+    </div>
+    <div class="menu">
+      <button class="active" data-view="dashboard">🏠 Dashboard</button>
+      <button data-view="form">📝 Add / Update Job</button>
+      <button data-view="jobs">📋 View Jobs <span class="chip" id="countChip">0</span></button>
+      <button data-view="importExport">⬇️⬆️ Import / Export</button>
+      <button data-view="settings">⚙️ Settings</button>
+    </div>
+    <div class="grow"></div>
+    <div class="toggle">
+      <input id="sampleBtn" type="checkbox" /> <label for="sampleBtn">Load sample data</label>
+    </div>
+    <div class="sidefoot">Local-only storage. To sync across devices you’ll need a backend (Firebase/Supabase) later.</div>
+  </aside>
 
-    <div class="grid" style="margin-top:18px">
-      <section class="card">
-        <h3>New / Edit Job</h3>
-        <form id="jobForm">
-          <input type="hidden" id="editingIndex" value="-1">
-          <div class="row"><input id="customer" placeholder="Customer name (e.g. Vivin)" required></div>
-          <div class="row"><input id="model" placeholder="Model" required></div>
-          <div class="row"><input id="refNo" placeholder="Reference No"></div>
-          <div class="row"><input id="qty" placeholder="Qty" type="number" min="0" value="1"></div>
-          <div class="row"><textarea id="notes" placeholder="Notes (optional)" rows="3"></textarea></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button type="submit">Save job</button>
-            <button type="button" id="saveLocal" class="small">Save local only</button>
-            <button type="button" id="exportXlsx" class="small">Export Excel</button>
-          </div>
-          <div style="margin-top:8px" class="notice">By default the app will auto-upload the jobs file to your configured GitHub repo (you can disable token or leave blank to keep local storage only).</div>
-        </form>
-
-        <div style="margin-top:12px">
-          <h4>Configuration</h4>
-          <div class="config">
-            <input id="ghUser" placeholder="GitHub owner (username or org), e.g. supun123456789">
-            <input id="ghRepo" placeholder="Repo name, e.g. softlogic-files">
-            <input id="ghPath" placeholder="File path on repo, e.g. data/jobs.xlsx">
-            <input id="ghToken" placeholder="GitHub Personal Access Token (keep secret)" type="password">
-            <div style="display:flex;gap:8px">
-              <button id="testDownload" class="small">Download from GitHub</button>
-              <button id="clearLocal" class="small">Clear local</button>
-            </div>
-            <div class="muted">Tip: It's safer to use a server-side token (this demo allows client-side token for quick testing only).</div>
-          </div>
-        </div>
-      </section>
-
-      <aside class="card">
-        <h3>Menu</h3>
-        <div class="menu" role="tablist">
-          <button id="tabAll" class="active">All Jobs</button>
-          <button id="tabOutgoing">By Customer</button>
-          <button id="tabSearch">Search / Filter</button>
-        </div>
-
-        <div id="listArea" style="margin-top:12px"></div>
-
-        <div style="margin-top:12px">
-          <h4>Quick actions</h4>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-            <button id="downloadCsv" class="small">Download CSV</button>
-            <button id="syncGithub" class="small">Sync to GitHub now</button>
-            <button id="loadFromLocal" class="small">Load local</button>
-          </div>
-        </div>
-      </aside>
+  <!-- Main -->
+  <main class="main">
+    <div class="top">
+      <h1 id="viewTitle">Dashboard</h1>
+      <div class="spacer"></div>
+      <button id="installBtn" class="btn ghost hidden">Install</button>
+      <a class="btn" href="https://supun123456789.github.io/softlogic/" target="_blank">Open GitHub Page</a>
     </div>
 
-    <footer class="muted">Made for Supun — convert to Android WebView or host on GitHub Pages. Keep tokens secret. Uploads use GitHub REST API v3.</footer>
-  </div>
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="grid">
+      <div class="card">
+        <h2>At a glance</h2>
+        <div class="row cols-3">
+          <div class="card">
+            <h2>Total Jobs</h2>
+            <div id="statTotal" style="font-size:28px; font-weight:800">0</div>
+          </div>
+          <div class="card">
+            <h2>In Progress</h2>
+            <div id="statInProgress" style="font-size:28px; font-weight:800; color:#7dd3fc">0</div>
+          </div>
+          <div class="card">
+            <h2>Completed</h2>
+            <div id="statCompleted" style="font-size:28px; font-weight:800; color:#86efac">0</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Quick actions</h2>
+        <div class="actions">
+          <button class="pill" onclick="switchView('form')">➕ New job</button>
+          <button class="pill" onclick="switchView('jobs')">🔎 Find job</button>
+          <button class="pill" onclick="exportJSON()">💾 Export JSON</button>
+          <button class="pill" onclick="clearAll()">🗑 Clear all</button>
+        </div>
+        <div class="footer">Tip: click any row in the list to edit it.</div>
+      </div>
+    </section>
 
-  <!-- SheetJS for Excel export (browser) -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- FORM -->
+    <section id="view-form" class="grid hidden">
+      <div class="card">
+        <h2>Add / Update Job</h2>
+        <form id="jobForm">
+          <div class="row cols-2">
+            <div>
+              <label>Job Number</label>
+              <input type="text" id="job_number" required placeholder="e.g., SL-2025-001" />
+            </div>
+            <div>
+              <label>Customer Name</label>
+              <input type="text" id="customer_name" required placeholder="Customer name" />
+            </div>
+          </div>
+          <div class="row cols-3">
+            <div>
+              <label>Job State</label>
+              <select id="job_state">
+                <option>Pending</option>
+                <option>In Progress</option>
+                <option>Completed</option>
+              </select>
+            </div>
+            <div>
+              <label>Job In Time</label>
+              <input type="datetime-local" id="job_in_time" />
+            </div>
+            <div>
+              <label>Job Out Time</label>
+              <input type="datetime-local" id="job_out_time" />
+            </div>
+          </div>
+          <div>
+            <label>Remark</label>
+            <textarea id="remark" placeholder="Notes, parts, findings…"></textarea>
+          </div>
+          <div class="actions" style="margin-top:10px">
+            <button class="pill" type="submit">✅ Save</button>
+            <button class="pill" type="button" onclick="resetForm()">↺ Clear</button>
+          </div>
+          <div id="message" class="msg"></div>
+        </form>
+      </div>
+    </section>
 
-  <script>
-    // Data handling
-    const STORAGE_KEY = 'softlogic_jobs_v1';
-    let jobs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    <!-- JOBS -->
+    <section id="view-jobs" class="grid hidden">
+      <div class="card">
+        <h2>Jobs</h2>
+        <div class="toolbar">
+          <input type="search" id="q" placeholder="Search job number or customer…" oninput="renderJobs()" />
+          <select id="filterState" onchange="renderJobs()">
+            <option value="ALL">All states</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <button class="pill" onclick="exportCSV()">⬇️ Export CSV</button>
+          <button class="pill" onclick="exportJSON()">⬇️ Export JSON</button>
+          <label class="pill" style="cursor:pointer">
+            ⬆️ Import JSON
+            <input type="file" id="importFile" accept="application/json" class="hidden" />
+          </label>
+        </div>
+        <div style="overflow:auto">
+          <table id="jobsTable">
+            <thead>
+              <tr>
+                <th data-sort="job_number">Job Number</th>
+                <th data-sort="customer_name">Customer</th>
+                <th data-sort="job_state">State</th>
+                <th data-sort="job_in_time">In Time</th>
+                <th data-sort="job_out_time">Out Time</th>
+                <th data-sort="remark">Remark</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-    // Load persisted config in sessionStorage
-    document.getElementById('ghUser').value = sessionStorage.getItem('ghUser')||'';
-    document.getElementById('ghRepo').value = sessionStorage.getItem('ghRepo')||'';
-    document.getElementById('ghPath').value = sessionStorage.getItem('ghPath')||'jobs.xlsx';
-    document.getElementById('ghToken').value = sessionStorage.getItem('ghToken')||'';
+    <!-- IMPORT / EXPORT -->
+    <section id="view-importExport" class="grid hidden">
+      <div class="card">
+        <h2>Backup / Restore</h2>
+        <div class="actions">
+          <button class="pill" onclick="exportJSON()">💾 Download JSON</button>
+          <button class="pill" onclick="exportCSV()">📄 Download CSV</button>
+        </div>
+        <div class="footer">Files are stored only on this device unless you import them elsewhere.</div>
+      </div>
+    </section>
 
-    // helpers
-    function saveLocalData(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
-    }
+    <!-- SETTINGS -->
+    <section id="view-settings" class="grid hidden">
+      <div class="card">
+        <h2>Danger zone</h2>
+        <button class="btn bad" onclick="clearAll()">🗑 Delete ALL jobs</button>
+        <div class="footer">Irreversible. Only clears the current browser’s storage.</div>
+      </div>
+    </section>
 
-    function renderList(){
-      const area = document.getElementById('listArea');
-      if(!jobs.length) return area.innerHTML = '<div class="muted">No jobs yet — add one from the left.</div>';
-      let html = '<table><thead><tr><th>#</th><th>Customer</th><th>Model</th><th>Ref</th><th>Qty</th><th>Notes</th><th>Actions</th></tr></thead><tbody>';
-      jobs.forEach((j,i)=>{
-        html += `<tr><td>${i+1}</td><td>${escapeHtml(j.customer)}</td><td>${escapeHtml(j.model)}</td><td>${escapeHtml(j.refNo||'')}</td><td>${j.qty||''}</td><td>${escapeHtml(j.notes||'')}</td><td class="actions"><button onclick="editJob(${i})" class="small">Edit</button><button onclick="deleteJob(${i})" class="small">Delete</button></td></tr>`;
-      });
-      html += '</tbody></table>';
-      area.innerHTML = html;
-    }
+  </main>
+</div>
 
-    function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>\"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','\\':'\\\\','"':'&quot;'}[c])); }
+<script>
+/* ---------- Helpers: storage & utils ---------- */
+const KEY = "jobs-v2";
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+const fmt = (v) => !v ? "" : new Date(v).toLocaleString();
 
-    function addJob(obj){ jobs.push(obj); saveLocalData(); renderList(); }
-    function updateJob(index,obj){ jobs[index]=obj; saveLocalData(); renderList(); }
-    function deleteJob(index){ if(!confirm('Delete this job?')) return; jobs.splice(index,1); saveLocalData(); renderList(); }
+function getJobs(){
+  try{ return JSON.parse(localStorage.getItem(KEY)) || [] }catch{ return [] }
+}
+function setJobs(arr){
+  localStorage.setItem(KEY, JSON.stringify(arr));
+  updateStats();
+}
+function upsert(job){
+  const jobs = getJobs();
+  const i = jobs.findIndex(j => j.job_number.trim().toLowerCase() === job.job_number.trim().toLowerCase());
+  if(i>-1) jobs[i] = job; else jobs.push(job);
+  setJobs(jobs);
+}
 
-    // Form handling
-    document.getElementById('jobForm').addEventListener('submit', e=>{
-      e.preventDefault();
-      const idx = parseInt(document.getElementById('editingIndex').value||-1,10);
-      const job = {
-        customer: document.getElementById('customer').value.trim(),
-        model: document.getElementById('model').value.trim(),
-        refNo: document.getElementById('refNo').value.trim(),
-        qty: Number(document.getElementById('qty').value)||0,
-        notes: document.getElementById('notes').value.trim(),
-        createdAt: new Date().toISOString()
-      };
-      if(idx>=0){ updateJob(idx,job); document.getElementById('editingIndex').value='-1'; }
-      else { addJob(job); }
-      // Auto upload to GitHub if configured
-      maybeAutoUpload();
-      e.target.reset();
-    });
+/* ---------- View switching ---------- */
+const views = ["dashboard","form","jobs","importExport","settings"];
+function switchView(name){
+  views.forEach(v => {
+    const on = (v===name);
+    const sec = $("#view-"+v);
+    if(sec) sec.classList.toggle("hidden", !on);
+    const btn = $(`.menu button[data-view="${v}"]`);
+    if(btn) btn.classList.toggle("active", on);
+  });
+  $("#viewTitle").textContent = name[0].toUpperCase()+name.slice(1);
+  if(name==="jobs") renderJobs();
+  if(name==="dashboard") updateStats();
+  history.replaceState(null, "", "#"+name); // anchor
+}
+$(".menu").addEventListener("click", (e)=>{
+  const b = e.target.closest("button[data-view]");
+  if(b) switchView(b.dataset.view);
+});
 
-    document.getElementById('saveLocal').addEventListener('click', ()=>{ saveLocalData(); alert('Saved to local storage'); });
+/* ---------- Form logic ---------- */
+const form = $("#jobForm");
+form.addEventListener("submit", (e)=>{
+  e.preventDefault();
+  const job = {
+    job_number: $("#job_number").value.trim(),
+    customer_name: $("#customer_name").value.trim(),
+    job_state: $("#job_state").value,
+    job_in_time: $("#job_in_time").value,
+    job_out_time: $("#job_out_time").value,
+    remark: $("#remark").value.trim()
+  };
+  if(!job.job_number || !job.customer_name){
+    flash("Please fill Job Number & Customer.", true); return;
+  }
+  upsert(job);
+  flash("✅ Job saved.");
+  renderJobs();
+  switchView("jobs");
+});
+function resetForm(){
+  form.reset();
+  $("#message").textContent = "";
+  $("#message").className = "msg";
+}
+function flash(msg, isErr=false){
+  const m = $("#message");
+  m.textContent = msg;
+  m.className = "msg "+(isErr?"err":"ok");
+}
 
-    document.getElementById('exportXlsx').addEventListener('click', ()=>{
-      if(!jobs.length){ alert('No data to export'); return; }
-      const ws = XLSX.utils.json_to_sheet(jobs.map((j,i)=>({No:i+1,Customer:j.customer,Model:j.model,RefNo:j.refNo,Qty:j.qty,Notes:j.notes,Created:j.createdAt})))
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Jobs');
-      XLSX.writeFile(wb,'jobs.xlsx');
-    });
+/* ---------- Jobs table + sort/filter ---------- */
+let sortBy = "job_in_time";
+let sortDir = "desc";
+$("#jobsTable thead").addEventListener("click", (e)=>{
+  const th = e.target.closest("th[data-sort]");
+  if(!th) return;
+  const key = th.dataset.sort;
+  if(sortBy===key){ sortDir = (sortDir==="asc"?"desc":"asc"); } else { sortBy = key; sortDir = "asc"; }
+  renderJobs();
+});
 
-    // List actions
-    window.editJob = function(i){ const j = jobs[i]; document.getElementById('customer').value=j.customer; document.getElementById('model').value=j.model; document.getElementById('refNo').value=j.refNo; document.getElementById('qty').value=j.qty; document.getElementById('notes').value=j.notes; document.getElementById('editingIndex').value=i; window.scrollTo({top:0,behavior:'smooth'}); }
-    window.deleteJob = deleteJob;
-
-    // Menu tabs
-    document.getElementById('tabAll').addEventListener('click', ()=>{ setActive('tabAll'); renderList(); });
-    document.getElementById('tabOutgoing').addEventListener('click', ()=>{ setActive('tabOutgoing'); renderGroupedByCustomer(); });
-    document.getElementById('tabSearch').addEventListener('click', ()=>{ setActive('tabSearch'); renderSearch(); });
-    function setActive(id){ document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-
-    function renderGroupedByCustomer(){ const area=document.getElementById('listArea'); if(!jobs.length) return area.innerHTML='<div class="muted">No jobs yet.</div>'; const groups={}; jobs.forEach(j=>{ groups[j.customer]=(groups[j.customer]||0)+1 }); let html='<div>'; for(const k in groups) html+=`<div style="padding:6px 0"><strong>${escapeHtml(k)}</strong> &nbsp; <span class="muted">(${groups[k]} jobs)</span></div>`; html+='</div>'; area.innerHTML=html; }
-    function renderSearch(){ const area=document.getElementById('listArea'); area.innerHTML = `<div style="display:flex;gap:8px"><input id="q" placeholder="type customer/model/ref" style="flex:1"><button id="doSearch" class="small">Search</button></div><div id="searchResults" style="margin-top:8px"></div>`; document.getElementById('doSearch').addEventListener('click', ()=>{ const q=document.getElementById('q').value.toLowerCase(); const res = jobs.filter(j=> (j.customer||'').toLowerCase().includes(q) || (j.model||'').toLowerCase().includes(q) || (j.refNo||'').toLowerCase().includes(q)); let html=''; if(!res.length) html='<div class="muted">No results</div>'; else html='<table><thead><tr><th>#</th><th>Customer</th><th>Model</th><th>Ref</th><th>Qty</th><th>Actions</th></tr></thead><tbody>'+res.map((j,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(j.customer)}</td><td>${escapeHtml(j.model)}</td><td>${escapeHtml(j.refNo)}</td><td>${j.qty}</td><td><button onclick="editJob(${jobs.indexOf(j)})" class="small">Edit</button></td></tr>`).join('')+'</tbody></table>'; document.getElementById('searchResults').innerHTML=html; }); }
-
-    // CSV download
-    document.getElementById('downloadCsv').addEventListener('click', ()=>{
-      if(!jobs.length) return alert('No records');
-      const header = ['Customer','Model','RefNo','Qty','Notes','Created'];
-      const rows = jobs.map(j=>[j.customer,j.model,j.refNo,j.qty,j.notes,j.createdAt]);
-      const csv = [header.join(','),...rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""') }"\`).join(','))].join('\n');
-      const blob = new Blob([csv],{type:'text/csv'});
-      const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='jobs.csv'; a.click(); URL.revokeObjectURL(url);
-    });
-
-    // GitHub integration (simple client-side demo)
-    function ghConfig(){
-      const user = document.getElementById('ghUser').value.trim();
-      const repo = document.getElementById('ghRepo').value.trim();
-      const path = document.getElementById('ghPath').value.trim();
-      const token = document.getElementById('ghToken').value.trim();
-      // persist for session
-      sessionStorage.setItem('ghUser',user); sessionStorage.setItem('ghRepo',repo); sessionStorage.setItem('ghPath',path); sessionStorage.setItem('ghToken',token);
-      return {user,repo,path,token};
-    }
-
-    async function getFileSha(user,repo,path,token){
-      const url = `https://api.github.com/repos/${user}/${repo}/contents/${encodeURIComponent(path)}`;
-      const res = await fetch(url,{headers: token?{Authorization:'token '+token}:{}});
-      if(res.status===404) return null;
-      if(!res.ok) throw new Error('GitHub GET failed: '+res.status);
-      const j = await res.json(); return j.sha;
-    }
-
-    async function uploadJobsToGithub(){
-      const cfg = ghConfig();
-      if(!cfg.user||!cfg.repo||!cfg.path) return alert('Set GitHub owner/repo/path first');
-      try{
-        // build workbook with SheetJS
-        const ws = XLSX.utils.json_to_sheet(jobs.map((j,i)=>({No:i+1,Customer:j.customer,Model:j.model,RefNo:j.refNo,Qty:j.qty,Notes:j.notes,Created:j.createdAt})))
-        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Jobs');
-        const wbout = XLSX.write(wb,{bookType:'xlsx',type:'binary'});
-        // convert binary to base64
-        function s2ab(s){ const buf = new ArrayBuffer(s.length); const view = new Uint8Array(buf); for(var i=0;i<s.length;i++) view[i]=s.charCodeAt(i)&0xFF; return buf; }
-        const blob = new Blob([s2ab(wbout)],{type:'application/octet-stream'});
-        const arrayBuffer = await blob.arrayBuffer();
-        let binary = '';
-        const bytes = new Uint8Array(arrayBuffer);
-        const chunk = 0x8000;
-        for (let i=0; i<bytes.length; i+=chunk) {
-          binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
-        }
-        const contentBase64 = btoa(binary);
-
-        const sha = await getFileSha(cfg.user,cfg.repo,cfg.path,cfg.token);
-        const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}`;
-        const body = { message: sha? 'Update jobs.xlsx from web UI' : 'Create jobs.xlsx from web UI', content: contentBase64 };
-        if(sha) body.sha = sha;
-        const res = await fetch(url,{method:'PUT',headers: {'Content-Type':'application/json', ...(cfg.token?{Authorization:'token '+cfg.token}:{})}, body: JSON.stringify(body)});
-        const j = await res.json();
-        if(!res.ok) throw new Error(JSON.stringify(j));
-        alert('Uploaded to GitHub: ' + (j.content && j.content.path));
-        return j;
-      }catch(err){ console.error(err); alert('Upload failed: '+err.message||err); }
-    }
-
-    async function downloadJobsFromGithub(){
-      const cfg = ghConfig();
-      if(!cfg.user||!cfg.repo||!cfg.path) return alert('Set GitHub owner/repo/path first');
-      const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}`;
-      const res = await fetch(url,{headers: cfg.token?{Authorization:'token '+cfg.token}:{}});
-      if(res.status===404) return alert('File not found on repository');
-      if(!res.ok) return alert('Failed to fetch: '+res.status);
-      const j = await res.json();
-      const base64 = j.content.replace(/\n/g,'');
-      const binary = atob(base64);
-      // try parse with SheetJS
-      const buf = new Uint8Array(binary.length);
-      for(let i=0;i<binary.length;i++) buf[i]=binary.charCodeAt(i);
-      const wb = XLSX.read(buf,{type:'array'});
-      const first = wb.SheetNames[0];
-      const arr = XLSX.utils.sheet_to_json(wb.Sheets[first]);
-      // normalize to jobs format
-      jobs = arr.map(r=>({ customer:r.Customer||r.customer||'', model:r.Model||r.model||'', refNo:r.RefNo||r.RefNo||r.refNo||'', qty:Number(r.Qty||r.qty||0)||0, notes:r.Notes||r.notes||'', createdAt:r.Created||new Date().toISOString() }));
-      saveLocalData(); renderList(); alert('Loaded '+jobs.length+' jobs from GitHub');
-    }
-
-    // Auto upload option
-    async function maybeAutoUpload(){
-      const token = document.getElementById('ghToken').value.trim();
-      const auto = !!token; // simple rule: if token present, upload
-      if(auto){ // don't block UI
-        uploadJobsToGithub().catch(e=>console.warn('auto upload failed',e));
+function renderJobs(){
+  const tbody = $("#jobsTable tbody");
+  const q = $("#q").value.toLowerCase();
+  const f = $("#filterState").value;
+  let rows = getJobs().filter(j => {
+    const matchQ = !q || j.job_number.toLowerCase().includes(q) || j.customer_name.toLowerCase().includes(q);
+    const matchF = (f==="ALL") || j.job_state===f;
+    return matchQ && matchF;
+  });
+  rows.sort((a,b)=>{
+    const A = (a[sortBy]||"").toString().toLowerCase();
+    const B = (b[sortBy]||"").toString().toLowerCase();
+    if(A<B) return sortDir==="asc"?-1:1;
+    if(A>B) return sortDir==="asc"?1:-1;
+    return 0;
+  });
+  tbody.innerHTML = "";
+  rows.forEach(j=>{
+    const tr = document.createElement("tr");
+    const classMap = {
+      "Pending":"s-pending",
+      "In Progress":"s-inprogress",
+      "Completed":"s-completed"
+    };
+    tr.innerHTML = `
+      <td>${j.job_number}</td>
+      <td>${j.customer_name}</td>
+      <td><span class="state ${classMap[j.job_state]||""}">${j.job_state}</span></td>
+      <td>${fmt(j.job_in_time)}</td>
+      <td>${fmt(j.job_out_time)}</td>
+      <td>${(j.remark||"")}</td>
+      <td class="actions">
+        <button class="pill" data-act="edit">Edit</button>
+        <button class="pill" data-act="delete">Delete</button>
+      </td>`;
+    tr.querySelector('[data-act="edit"]').onclick = ()=> {
+      switchView("form");
+      $("#job_number").value=j.job_number;
+      $("#customer_name").value=j.customer_name;
+      $("#job_state").value=j.job_state;
+      $("#job_in_time").value=j.job_in_time||"";
+      $("#job_out_time").value=j.job_out_time||"";
+      $("#remark").value=j.remark||"";
+      $("#message").textContent="";
+    };
+    tr.querySelector('[data-act="delete"]').onclick = ()=>{
+      if(confirm(`Delete job ${j.job_number}?`)){
+        const arr = getJobs().filter(x=> x.job_number!==j.job_number);
+        setJobs(arr); renderJobs();
       }
-    }
+    };
+    tbody.appendChild(tr);
+  });
+  $("#countChip").textContent = rows.length;
+  updateStats();
+}
 
-    document.getElementById('syncGithub').addEventListener('click', ()=>{ uploadJobsToGithub(); });
-    document.getElementById('testDownload').addEventListener('click', ()=>{ downloadJobsFromGithub(); });
-    document.getElementById('loadFromLocal').addEventListener('click', ()=>{ jobs = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); renderList(); });
-    document.getElementById('clearLocal').addEventListener('click', ()=>{ if(confirm('Clear local saved jobs?')){ jobs=[]; saveLocalData(); renderList(); }});
+/* ---------- Stats ---------- */
+function updateStats(){
+  const jobs = getJobs();
+  $("#statTotal").textContent = jobs.length;
+  $("#statInProgress").textContent = jobs.filter(j=>j.job_state==="In Progress").length;
+  $("#statCompleted").textContent = jobs.filter(j=>j.job_state==="Completed").length;
+  $("#countChip").textContent = jobs.length;
+}
 
-    // on load
-    renderList();
-  </script>
+/* ---------- Export / Import ---------- */
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(getJobs(),null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "jobs.json";
+  a.click();
+}
+function exportCSV(){
+  const jobs = getJobs();
+  const headers = ["job_number","customer_name","job_state","job_in_time","job_out_time","remark"];
+  const rows = jobs.map(j => headers.map(h => `"${(j[h]??"").toString().replace(/"/g,'""')}"`).join(","));
+  const csv = headers.join(",")+"\n"+rows.join("\n");
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "jobs.csv";
+  a.click();
+}
+$("#importFile").addEventListener("change", async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const text = await file.text();
+  try{
+    const arr = JSON.parse(text);
+    if(!Array.isArray(arr)) throw new Error("Invalid JSON");
+    setJobs(arr); renderJobs();
+    alert("Imported "+arr.length+" jobs.");
+  }catch(err){ alert("Import failed: "+err.message) }
+});
+
+/* ---------- Samples & dangerous actions ---------- */
+$("#sampleBtn").addEventListener("change",(e)=>{
+  if(e.target.checked){
+    const sample = [
+      {job_number:"SL-2025-001", customer_name:"Kamal Perera", job_state:"Pending", job_in_time:new Date().toISOString(), job_out_time:"", remark:"AC not cooling"},
+      {job_number:"SL-2025-002", customer_name:"Nadeesha Silva", job_state:"In Progress", job_in_time:new Date().toISOString(), job_out_time:"", remark:"Gas leak suspected"},
+      {job_number:"SL-2025-003", customer_name:"Softlogic Office", job_state:"Completed", job_in_time:new Date(Date.now()-86400000).toISOString(), job_out_time:new Date().toISOString(), remark:"Filter change"}
+    ];
+    setJobs(sample); renderJobs();
+  }else{
+    clearAll();
+  }
+});
+function clearAll(){
+  if(confirm("Delete ALL jobs on this device?")){ localStorage.removeItem(KEY); renderJobs(); updateStats(); }
+}
+
+/* ---------- PWA: manifest path fix & install prompt ---------- */
+(function fixPaths(){
+  // Ensure manifest/service worker work under /softlogic/ on GitHub Pages.
+  const basePath = (()=>{
+    const p = location.pathname;
+    if(p.endsWith("/")) return p;
+    const i = p.lastIndexOf("/");
+    return i>0 ? p.slice(0,i+1) : "/";
+  })();
+  const link = document.getElementById("manifestLink");
+  if(link) link.href = basePath + "manifest.json";
+
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register(basePath + "sw.js").catch(()=>{});
+  }
+})();
+
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('installBtn');
+  btn.classList.remove('hidden');
+  btn.onclick = async ()=>{
+    btn.classList.add('hidden');
+    deferredPrompt.prompt();
+    deferredPrompt = null;
+  };
+});
+
+/* ---------- Init ---------- */
+window.addEventListener("DOMContentLoaded", ()=>{
+  // deep link to a view via URL hash
+  const hash = (location.hash||"").replace("#","");
+  if(views.includes(hash)) switchView(hash); else switchView("dashboard");
+  renderJobs();
+});
+</script>
 </body>
 </html>
